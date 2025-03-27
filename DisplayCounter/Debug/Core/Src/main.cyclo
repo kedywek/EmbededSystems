@@ -1,0 +1,10 @@
+../Core/Src/main.c:112:5:main	4
+../Core/Src/main.c:176:6:SystemClock_Config	4
+../Core/Src/main.c:220:6:updateDisplay	1
+../Core/Src/main.c:232:6:initializeClocks	1
+../Core/Src/main.c:239:6:initializationOfJoystick	1
+../Core/Src/main.c:243:6:initializationOfDigit	1
+../Core/Src/main.c:247:6:initializationOfSegments	2
+../Core/Src/main.c:254:6:initliazePinToOutput	1
+../Core/Src/main.c:265:6:initliazePinToInput	1
+../Core/Src/main.c:283:6:Error_Handler	1

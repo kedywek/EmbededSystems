@@ -1,0 +1,307 @@
+/* USER CODE BEGIN Header */
+/**
+  ******************************************************************************
+  * @file           : main.c
+  * @brief          : Main program body
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+  * All rights reserved.</center></h2>
+  *
+  * This software component is licensed by ST under BSD 3-Clause license,
+  * the "License"; You may not use this file except in compliance with the
+  * License. You may obtain a copy of the License at:
+  *                        opensource.org/licenses/BSD-3-Clause
+  *
+  ******************************************************************************
+  */
+/* USER CODE END Header */
+
+/* Includes ------------------------------------------------------------------*/
+#include "main.h"
+
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
+
+/* USER CODE END Includes */
+
+/* Private typedef -----------------------------------------------------------*/
+/* USER CODE BEGIN PTD */
+
+/* USER CODE END PTD */
+
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN PD */
+#define INTERVAL 1000
+#define READINGS_PER_DIODE_SWAP 20
+
+#define ON GPIO_PIN_SET
+#define OFF GPIO_PIN_RESET
+
+#define NUMBER_OF_PINS 8
+#define NUMBER_OF_LED 3
+#define NUMBER_OF_JOYSTICK 5
+
+#define DIODE_PIN_0 GPIO_PIN_6
+#define DIODE_PIN_1 GPIO_PIN_7
+#define DIODE_PIN_2 GPIO_PIN_8
+#define DIODE_PIN_3 GPIO_PIN_9
+#define DIODE_PIN_4 GPIO_PIN_4
+#define DIODE_PIN_5 GPIO_PIN_3
+#define DIODE_PIN_6 GPIO_PIN_5
+#define DIODE_PIN_7 GPIO_PIN_6
+#define LED_BLUE_PIN GPIO_PIN_12
+#define LED_RED_PIN GPIO_PIN_13
+#define LED_GREEN_PIN GPIO_PIN_8
+#define JOYSTICK_RIGHT_PIN GPIO_PIN_0
+#define JOYSTICK_LEFT_PIN GPIO_PIN_1
+#define JOYSTICK_DOWN_PIN GPIO_PIN_2
+#define JOYSTICK_UP_PIN GPIO_PIN_3
+#define JOYSTICK_PUSHED_PIN GPIO_PIN_15
+
+#define DIODE_PORT_0 GPIOC
+#define DIODE_PORT_1 GPIOC
+#define DIODE_PORT_2 GPIOC
+#define DIODE_PORT_3 GPIOC
+#define DIODE_PORT_4 GPIOE
+#define DIODE_PORT_5 GPIOD
+#define DIODE_PORT_6 GPIOE
+#define DIODE_PORT_7 GPIOE
+#define LED_BLUE_PORT GPIOD
+#define LED_RED_PORT GPIOD
+#define LED_GREEN_PORT GPIOB
+#define JOYSTICK_PORT GPIOE
+
+
+
+/* USER CODE END PD */
+
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN PM */
+
+/* USER CODE END PM */
+
+/* Private variables ---------------------------------------------------------*/
+
+/* USER CODE BEGIN PV */
+int DIODES_PINS[8] = {DIODE_PIN_0, DIODE_PIN_1, DIODE_PIN_2, DIODE_PIN_3, DIODE_PIN_4, DIODE_PIN_5, DIODE_PIN_6, DIODE_PIN_7};
+GPIO_TypeDef *DIODES_PORTS[8] = {DIODE_PORT_0, DIODE_PORT_1, DIODE_PORT_2, DIODE_PORT_3, DIODE_PORT_4, DIODE_PORT_5, DIODE_PORT_6, DIODE_PORT_7};
+int LED_PINS[3] = {LED_BLUE_PIN, LED_RED_PIN, LED_GREEN_PIN};
+GPIO_TypeDef *LED_PORTS[3] = {GPIOD, GPIOD, GPIOB};
+int JOYSTICK_PINS[5] = {GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_2, GPIO_PIN_3, GPIO_PIN_15};
+
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
+void SystemClock_Config(void);
+void initializationOfDiodes(void);
+void initializationOfLED(void);
+void initializationOfJoystick(void);
+void controlJoystick(void);
+
+/* USER CODE BEGIN PFP */
+void initliazePinToOutput(GPIO_TypeDef *port, int pin);
+/* USER CODE END PFP */
+
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
+
+/* USER CODE END 0 */
+
+/**
+  * @brief  The application entry point.
+  * @retval int
+  */
+int main(void)
+{
+  /* USER CODE BEGIN 1 */
+
+  /* USER CODE END 1 */
+
+  /* MCU Configuration--------------------------------------------------------*/
+
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
+
+  /* USER CODE BEGIN Init */
+
+  /* USER CODE END Init */
+
+  /* Configure the system clock */
+  SystemClock_Config();
+
+  /* USER CODE BEGIN SysInit */
+
+  /* USER CODE END SysInit */
+
+  /* Initialize all configured peripherals */
+  initializeClocks();
+  initializationOfJoystick();
+  initializationOfDiodes();
+  /* USER CODE BEGIN 2 */
+  int index = 0;
+  int change = -1;
+  int counter = 0;
+  /* USER CODE END 2 */
+
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  while (1)
+  {
+	  uint32_t lastLedUpdate = HAL_GetTick();
+	  controlJoystick();
+	  HAL_Delay(INTERVAL);
+      if(counter == READINGS_PER_DIODE_SWAP){
+	  HAL_GPIO_WritePin (DIODES_PORTS[index- change], DIODES_PINS[index - change], OFF);
+		  HAL_GPIO_WritePin (DIODES_PORTS[index], DIODES_PINS[index], ON);
+		  if(index == 0 || index == NUMBER_OF_PINS - 1){
+			change *= -1;
+		  }
+		  index += change;
+		  counter = 0;
+      }
+      else{
+    	  counter++;
+      }
+	  /* USER CODE END WHILE */
+	  /* USER CODE BEGIN 3 */
+  }
+  /* USER CODE END 3 */
+}
+
+/**
+  * @brief System Clock Configuration
+  * @retval None
+  */
+void SystemClock_Config(void)
+{
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+
+  /** Initializes the CPU, AHB and APB busses clocks
+  */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI;
+  RCC_OscInitStruct.MSIState = RCC_MSI_ON;
+  RCC_OscInitStruct.MSICalibrationValue = 0;
+  RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_6;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Initializes the CPU, AHB and APB busses clocks
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_MSI;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Configure the main internal regulator output voltage
+  */
+  if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
+
+/**
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+void initializeClocks(void){
+	__HAL_RCC_GPIOC_CLK_ENABLE();
+	__HAL_RCC_GPIOD_CLK_ENABLE();
+	__HAL_RCC_GPIOE_CLK_ENABLE();
+}
+void initializationOfDiodes(void)
+{
+	for(int i = 0; i < NUMBER_OF_PINS; i++){
+		/*Configure GPIO pin Output Level */
+		initliazePinToOutput(DIODES_PORTS[i], DIODES_PINS[i]);
+	}
+}
+void initializationOfJoystick(void)
+{
+	for(int i = 0; i < NUMBER_OF_JOYSTICK; i++){
+		/*Configure GPIO pin Output Level */
+		initliazePinToInput(DIODES_PORTS[i], JOYSTICK_PORT);
+	}
+}
+void controlJoystick(void){
+    HAL_GPIO_WritePin(LED_RED_PORT, LED_RED_PIN, HAL_GPIO_ReadPin(JOYSTICK_LEFT_PORT, JOYSTICK_LEFT_PIN));
+    HAL_GPIO_WritePin(LED_GREEN_PORT, LED_GREEN_PIN, HAL_GPIO_ReadPin(JOYSTICK_DOWN_PORT, JOYSTICK_DOWN_PIN));
+    HAL_GPIO_WritePin(LED_BLUE_PORT, LED_BLUE_PIN, HAL_GPIO_ReadPin(JOYSTICK_RIGHT_PORT, JOYSTICK_RIGHT_PIN));
+
+    /* If the center button is pressed, turn on all LEDs */
+    if (HAL_GPIO_ReadPin(JOYSTICK_PUSHED_PORT, JOYSTICK_PUSHED_PIN) == GPIO_PIN_SET) {
+        HAL_GPIO_WritePin(LED_RED_PORT, LED_RED_PIN, ON);
+        HAL_GPIO_WritePin(LED_GREEN_PORT, LED_GREEN_PIN, ON);
+        HAL_GPIO_WritePin(LED_BLUE_PORT, LED_BLUE_PIN, ON);
+    }
+}
+
+/* USER CODE BEGIN 4 */
+void initliazePinToOutput(GPIO_TypeDef *port, int pin){
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+	HAL_GPIO_WritePin(port, pin, OFF);
+	GPIO_InitStruct.Pin = pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+
+	HAL_GPIO_Init(port, &GPIO_InitStruct);
+}
+
+void initliazePinToInput(GPIO_TypeDef *port, int pin){
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+	HAL_GPIO_WritePin(port, pin, OFF);
+	GPIO_InitStruct.Pin = pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+
+	HAL_GPIO_Init(port, &GPIO_InitStruct);
+}
+
+
+/* USER CODE END 4 */
+
+/**
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
+void Error_Handler(void)
+{
+  /* USER CODE BEGIN Error_Handler_Debug */
+  /* User can add his own implementation to report the HAL error return state */
+
+  /* USER CODE END Error_Handler_Debug */
+}
+
+#ifdef  USE_FULL_ASSERT
+/**
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
+void assert_failed(char *file, uint32_t line)
+{
+  /* USER CODE BEGIN 6 */
+	while(1);
+  /* User can add his own implementation to report the file name and line number,
+     tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  /* USER CODE END 6 */
+}
+#endif /* USE_FULL_ASSERT */
+
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

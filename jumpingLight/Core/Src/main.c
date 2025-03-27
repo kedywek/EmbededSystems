@@ -33,9 +33,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define INTERVAL 50
-#define READINGS_PER_DIODE_SWAP 20
-
+#define INTERVAL 1000
 #define ON GPIO_PIN_SET
 #define OFF GPIO_PIN_RESET
 
@@ -95,12 +93,15 @@ int JOYSTICK_PINS[5] = {GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_2, GPIO_PIN_3, GPIO_PIN
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-static void initializationOfDiodes(void);
-static void initializationOfLED(void);
-static void initializationOfJoystick(void);
+void initializeClocks(void);
+void initializationOfDiodes(void);
+void initializationOfLED(void);
+void initializationOfJoystick(void);
+void controlJoystick(void);
 
 /* USER CODE BEGIN PFP */
 void initliazePinToOutput(GPIO_TypeDef *port, int pin);
+void initliazePinToInput(GPIO_TypeDef *port, int pin);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -138,6 +139,7 @@ int main(void)
   initializeClocks();
   initializationOfJoystick();
   initializationOfDiodes();
+  initializationOfJoystickOfLEDS();
   /* USER CODE BEGIN 2 */
   int index = 0;
   int change = -1;
@@ -148,29 +150,20 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-      HAL_GPIO_WritePin(LED_RED_PORT, LED_RED_PIN, HAL_GPIO_ReadPin(JOYSTICK_LEFT_PORT, JOYSTICK_LEFT_PIN));
-      HAL_GPIO_WritePin(LED_GREEN_PORT, LED_GREEN_PIN, HAL_GPIO_ReadPin(JOYSTICK_DOWN_PORT, JOYSTICK_DOWN_PIN));
-      HAL_GPIO_WritePin(LED_BLUE_PORT, LED_BLUE_PIN, HAL_GPIO_ReadPin(JOYSTICK_RIGHT_PORT, JOYSTICK_RIGHT_PIN));
-
-      /* If the center button is pressed, turn on all LEDs */
-      if (HAL_GPIO_ReadPin(JOYSTICK_PUSHED_PORT, JOYSTICK_PUSHED_PIN) == GPIO_PIN_SET) {
-          HAL_GPIO_WritePin(LED_RED_PORT, LED_RED_PIN, ON);
-          HAL_GPIO_WritePin(LED_GREEN_PORT, LED_GREEN_PIN, ON);
-          HAL_GPIO_WritePin(LED_BLUE_PORT, LED_BLUE_PIN, ON);
-      }
-	  HAL_Delay(INTERVAL);
-      if(counter == READINGS_PER_DIODE_SWAP){
-	  HAL_GPIO_WritePin (DIODES_PORTS[index- change], DIODES_PINS[index - change], OFF);
+	  uint32_t lastTick = HAL_GetTick();
+	  controlJoystick();
+	  if (HAL_GetTick() - lastTick >= INTERVAL) {
+		  HAL_GPIO_WritePin (DIODES_PORTS[index- change], DIODES_PINS[index - change], OFF);
 		  HAL_GPIO_WritePin (DIODES_PORTS[index], DIODES_PINS[index], ON);
 		  if(index == 0 || index == NUMBER_OF_PINS - 1){
-			change *= -1;
+			  change *= -1;
 		  }
 		  index += change;
 		  counter = 0;
-      }
-      else{
-    	  counter++;
-      }
+	  }
+	  else{
+		  counter++;
+	  }
 	  /* USER CODE END WHILE */
 	  /* USER CODE BEGIN 3 */
   }
@@ -223,24 +216,44 @@ void SystemClock_Config(void)
   * @param None
   * @retval None
   */
-static void initializeClocks(void){
+void controlJoystick(void){
+    HAL_GPIO_WritePin(LED_RED_PORT, LED_RED_PIN, HAL_GPIO_ReadPin(JOYSTICK_PORT, JOYSTICK_LEFT_PIN));
+    HAL_GPIO_WritePin(LED_GREEN_PORT, LED_GREEN_PIN, HAL_GPIO_ReadPin(JOYSTICK_PORT, JOYSTICK_DOWN_PIN));
+    HAL_GPIO_WritePin(LED_BLUE_PORT, LED_BLUE_PIN, HAL_GPIO_ReadPin(JOYSTICK_PORT, JOYSTICK_RIGHT_PIN));
+
+    /* If the center button is pressed, turn on all LEDs */
+    if (HAL_GPIO_ReadPin(JOYSTICK_PORT, JOYSTICK_PUSHED_PIN) == GPIO_PIN_SET) {
+        HAL_GPIO_WritePin(LED_RED_PORT, LED_RED_PIN, ON);
+        HAL_GPIO_WritePin(LED_GREEN_PORT, LED_GREEN_PIN, ON);
+        HAL_GPIO_WritePin(LED_BLUE_PORT, LED_BLUE_PIN, ON);
+    }
+}
+void initializeClocks(void){
+	__HAL_RCC_GPIOB_CLK_ENABLE();
 	__HAL_RCC_GPIOC_CLK_ENABLE();
 	__HAL_RCC_GPIOD_CLK_ENABLE();
 	__HAL_RCC_GPIOE_CLK_ENABLE();
 }
-static void initializationOfDiodes(void)
+void initializationOfDiodes(void)
 {
 	for(int i = 0; i < NUMBER_OF_PINS; i++){
 		/*Configure GPIO pin Output Level */
 		initliazePinToOutput(DIODES_PORTS[i], DIODES_PINS[i]);
 	}
 }
-static void initializationOfJoystick(void)
+void initializationOfJoystick(void)
 {
 	for(int i = 0; i < NUMBER_OF_JOYSTICK; i++){
 		/*Configure GPIO pin Output Level */
-		initliazePinToInput(DIODES_PORTS[i], JOYSTICK_PORT);
+		initliazePinToInput(JOYSTICK_PORT, JOYSTICK_PINS[i]);
 	}
+}
+void initializationOfJoystickOfLEDS(void){
+	for(int i = 0; i < NUMBER_OF_LED; i++){
+		/*Configure GPIO pin Output Level */
+		initliazePinToOutput(LED_PORTS[i], LED_PINS[i]);
+	}
+
 }
 
 /* USER CODE BEGIN 4 */
