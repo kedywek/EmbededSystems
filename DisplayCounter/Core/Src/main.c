@@ -34,15 +34,19 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define INTERVAL 1000
+#define ON GPIO_PIN_SET
+#define OFF GPIO_PIN_RESET
 
 #define MAX_DIGIT 9
 #define MIN_DIGIT 0
 
 #define NUMBER_OF_SEGMENTS 7
-#define ON GPIO_PIN_SET
-#define OFF GPIO_PIN_RESET
+#define NUMBER_OF_DIGITS 4
 
 #define DIGIT_1 GPIO_PIN_2
+#define DIGIT_2	GPIO_PIN_3
+#define DIGIT_3 GPIO_PIN_4
+#define DIGIT_4 GPIO_PIN_5
 
 #define DIGIT_PORT GPIOB
 
@@ -91,6 +95,7 @@ void initliazePinToInput(GPIO_TypeDef *port, int pin);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 const int SEGMENTS_PINS[7] = {SEGMENT_A, SEGMENT_B, SEGMENT_C, SEGMENT_D, SEGMENT_E, SEGMENT_F, SEGMENT_G};
+const int DIGITS_PINS[4] = {DIGIT_1, DIGIT_2, DIGIT_3, DIGIT_4};
 const uint8_t digit_patterns[10] = {
     0b0111111,
     0b0000110,
@@ -154,17 +159,17 @@ int main(void)
 
 	  /* USER CODE END WHILE */
 	  /* USER CODE BEGIN 3 */
+	  updateDisplay(counter);
+	  HAL_Delay(INTERVAL);
 	  if (HAL_GPIO_ReadPin(JOYSTICK_PORT, JOYSTICK_PUSHED_PIN)){
-		  direction = -1;
+		  direction = 1;
 	  }
 	  else{
-		  direction = 1;
+		  direction = -1;
 	  }
 	  counter += direction;
 	  if (counter > MAX_DIGIT) counter = MIN_DIGIT;
 	  if (counter < MIN_DIGIT) counter = MAX_DIGIT;
-	  updateDisplay(counter);
-	  HAL_Delay(INTERVAL);
   }
   /* USER CODE END 3 */
 }
@@ -242,11 +247,14 @@ void initializationOfJoystick(void)
 }
 void initializationOfDigit(void)
 {
-	initliazePinToInput(DIGIT_PORT, DIGIT_1);
+	for(int i = 0; i < NUMBER_OF_SEGMENTS; i++){
+		initliazePinToOutput(DIGIT_PORT, DIGITS_PINS[i]);
+	}
+	HAL_GPIO_WritePin(DIGIT_PORT, DIGIT_2, ON);
 }
 void initializationOfSegments(void){
+	HAL_PWREx_EnableVddIO2();
 	for(int i = 0; i < NUMBER_OF_SEGMENTS; i++){
-		/*Configure GPIO pin Output Level */
 		initliazePinToOutput(SEGMENT_PORT, SEGMENTS_PINS[i]);
 	}
 }

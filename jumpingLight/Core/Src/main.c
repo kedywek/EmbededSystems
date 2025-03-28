@@ -95,7 +95,7 @@ int JOYSTICK_PINS[5] = {GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_2, GPIO_PIN_3, GPIO_PIN
 void SystemClock_Config(void);
 void initializeClocks(void);
 void initializationOfDiodes(void);
-void initializationOfLED(void);
+void initializationOfLEDS(void);
 void initializationOfJoystick(void);
 void controlJoystick(void);
 
@@ -139,7 +139,7 @@ int main(void)
   initializeClocks();
   initializationOfJoystick();
   initializationOfDiodes();
-  initializationOfJoystickOfLEDS();
+  initializationOfLEDS();
   /* USER CODE BEGIN 2 */
   int index = 0;
   int change = -1;
@@ -148,11 +148,12 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  uint32_t lastTick = HAL_GetTick();
   while (1)
   {
-	  uint32_t lastTick = HAL_GetTick();
 	  controlJoystick();
 	  if (HAL_GetTick() - lastTick >= INTERVAL) {
+		  lastTick = HAL_GetTick();
 		  HAL_GPIO_WritePin (DIODES_PORTS[index- change], DIODES_PINS[index - change], OFF);
 		  HAL_GPIO_WritePin (DIODES_PORTS[index], DIODES_PINS[index], ON);
 		  if(index == 0 || index == NUMBER_OF_PINS - 1){
@@ -217,16 +218,34 @@ void SystemClock_Config(void)
   * @retval None
   */
 void controlJoystick(void){
-    HAL_GPIO_WritePin(LED_RED_PORT, LED_RED_PIN, HAL_GPIO_ReadPin(JOYSTICK_PORT, JOYSTICK_LEFT_PIN));
-    HAL_GPIO_WritePin(LED_GREEN_PORT, LED_GREEN_PIN, HAL_GPIO_ReadPin(JOYSTICK_PORT, JOYSTICK_DOWN_PIN));
-    HAL_GPIO_WritePin(LED_BLUE_PORT, LED_BLUE_PIN, HAL_GPIO_ReadPin(JOYSTICK_PORT, JOYSTICK_RIGHT_PIN));
 
-    /* If the center button is pressed, turn on all LEDs */
-    if (HAL_GPIO_ReadPin(JOYSTICK_PORT, JOYSTICK_PUSHED_PIN) == GPIO_PIN_SET) {
+    if (HAL_GPIO_ReadPin(JOYSTICK_PORT, JOYSTICK_PUSHED_PIN) == OFF) {
         HAL_GPIO_WritePin(LED_RED_PORT, LED_RED_PIN, ON);
         HAL_GPIO_WritePin(LED_GREEN_PORT, LED_GREEN_PIN, ON);
         HAL_GPIO_WritePin(LED_BLUE_PORT, LED_BLUE_PIN, ON);
+    }else{
+    	if(HAL_GPIO_ReadPin(JOYSTICK_PORT, JOYSTICK_LEFT_PIN) == OFF){
+    	    HAL_GPIO_WritePin(LED_RED_PORT, LED_RED_PIN, ON);
+    	}
+    	else{
+    		HAL_GPIO_WritePin(LED_RED_PORT, LED_RED_PIN, OFF);
+    	}
+    	if(HAL_GPIO_ReadPin(JOYSTICK_PORT, JOYSTICK_DOWN_PIN) == OFF){
+    	    HAL_GPIO_WritePin(LED_GREEN_PORT, LED_GREEN_PIN, ON);
+    	}
+    	else{
+    	    HAL_GPIO_WritePin(LED_GREEN_PORT, LED_GREEN_PIN, OFF);
+    	}
+    	if(HAL_GPIO_ReadPin(JOYSTICK_PORT, JOYSTICK_RIGHT_PIN) == OFF){
+    	    HAL_GPIO_WritePin(LED_BLUE_PORT, LED_BLUE_PIN, ON);
+    	}
+    	else{
+    	    HAL_GPIO_WritePin(LED_BLUE_PORT, LED_BLUE_PIN, OFF);
+    	}
+
     }
+
+    /* If the center button is pressed, turn on all LEDs */
 }
 void initializeClocks(void){
 	__HAL_RCC_GPIOB_CLK_ENABLE();
@@ -248,7 +267,7 @@ void initializationOfJoystick(void)
 		initliazePinToInput(JOYSTICK_PORT, JOYSTICK_PINS[i]);
 	}
 }
-void initializationOfJoystickOfLEDS(void){
+void initializationOfLEDS(void){
 	for(int i = 0; i < NUMBER_OF_LED; i++){
 		/*Configure GPIO pin Output Level */
 		initliazePinToOutput(LED_PORTS[i], LED_PINS[i]);
