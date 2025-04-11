@@ -35,6 +35,24 @@
 #define GPIO_PIN_14         ((uint16_t)0x4000)
 #define GPIO_PIN_15         ((uint16_t)0x8000)
 
+#define MODE_GPIO_PIN_0 	((uint32_t)0x00000001)
+#define MODE_GPIO_PIN_1 	((uint32_t)0x00000004)
+#define MODE_GPIO_PIN_2 	((uint32_t)0x00000010)
+#define MODE_GPIO_PIN_3 	((uint32_t)0x00000040)
+#define MODE_GPIO_PIN_4 	((uint32_t)0x00000100)
+#define MODE_GPIO_PIN_5 	((uint32_t)0x00000400)
+#define MODE_GPIO_PIN_6 	((uint32_t)0x00001000)
+#define MODE_GPIO_PIN_7 	((uint32_t)0x00004000)
+#define MODE_GPIO_PIN_8 	((uint32_t)0x00010000)
+#define MODE_GPIO_PIN_9 	((uint32_t)0x00040000)
+#define MODE_GPIO_PIN_10 	((uint32_t)0x00100000)
+#define MODE_GPIO_PIN_11 	((uint32_t)0x00400000)
+#define MODE_GPIO_PIN_12 	((uint32_t)0x01000000)
+#define MODE_GPIO_PIN_13 	((uint32_t)0x04000000)
+#define MODE_GPIO_PIN_14 	((uint32_t)0x10000000)
+#define MODE_GPIO_PIN_15 	((uint32_t)0x40000000)
+
+#define GPIO_IDR 			((uint32_t)0x10)
 #define GPIO_ODR 			((uint32_t)0x14)
 
 #define GPIO                ((uint32_t)0x48000000)
@@ -42,16 +60,16 @@
 #define GPIOE               (GPIO + 0x1000)
 #define GPIOG               (GPIO + 0x1800)
 
-#define AHB1                ((uint32_t)0x40020000)
+#define AHB1                (0x40020000)
 #define RCC                 (AHB1 + 0x1000)
-#define AHB2ENR             (RCC + 0x4C)
+#define AHB2ENR             (RCC + 0x4CU)
 #define ENRGPIOB            (AHB2ENR + 0x01)
 #define ENRGPIOE            (AHB2ENR + 0x04)
 #define ENRGPIOG            (AHB2ENR + 0x06)
 
 #define APB1                ((uint32_t)0x40000000)
 #define PWR                 (APB1 + 0x7000)
-#define VDDIO2              (PWR + 0x09)
+#define CR2              	(PWR + 0x04)
 
 
 #define ON 1
@@ -68,6 +86,11 @@
 #define DIGIT_3 GPIO_PIN_4
 #define DIGIT_4 GPIO_PIN_5
 
+#define DIGIT_1_MODE MODE_GPIO_PIN_2
+#define DIGIT_2_MODE MODE_GPIO_PIN_3
+#define DIGIT_3_MODE MODE_GPIO_PIN_4
+#define DIGIT_4_MODE MODE_GPIO_PIN_5
+
 #define DIGIT_PORT GPIOB
 
 #define SEGMENT_A GPIO_PIN_0
@@ -78,9 +101,19 @@
 #define SEGMENT_F GPIO_PIN_5
 #define SEGMENT_G GPIO_PIN_6
 
+#define SEGMENT_A_MODE MODE_GPIO_PIN_0
+#define SEGMENT_B_MODE MODE_GPIO_PIN_1
+#define SEGMENT_C_MODE MODE_GPIO_PIN_2
+#define SEGMENT_D_MODE MODE_GPIO_PIN_3
+#define SEGMENT_E_MODE MODE_GPIO_PIN_4
+#define SEGMENT_F_MODE MODE_GPIO_PIN_5
+#define SEGMENT_G_MODE MODE_GPIO_PIN_6
+
 #define SEGMENT_PORT GPIOG
 
 #define JOYSTICK_PUSHED_PIN GPIO_PIN_15
+
+#define JOYSTICK_PUSHED_PIN_MODE MODE_GPIO_PIN_15
 
 #define JOYSTICK_PORT GPIOE
 
@@ -105,8 +138,8 @@ const uint8_t digit_patterns[10] = {
     0b1111111,
     0b1101111
 };
-void initializePinToOutput(uint32_t port, uint16_t pin);
-void initializePinToInput(uint32_t port, uint16_t pin);
+void initializePinToOutput(uint32_t port, uint32_t pin);
+void initializePinToInput(uint32_t port, uint32_t pin);
 void enableClockGPIOB();
 void enableClockGPIOE();
 void enableClockGPIOG();
@@ -119,50 +152,52 @@ void updateDisplay(int num, int digit);
 
 int main(void)
 {
-	unsigned int current = 0;
-	int change = 1;
+	unsigned int counter = 0;
+	int direction = 1;
 	initializeGPIO();
+	setValueGpio(GPIOB, DIGITS_PINS[3], ON);
+	setValueGpio(GPIOB, DIGITS_PINS[2], ON);
+	setValueGpio(GPIOB, DIGITS_PINS[1], ON);
+	setValueGpio(GPIOB, DIGITS_PINS[0], ON);
 	while(1)
 	{
-
-        for (int digit = 0; digit < NUMBER_OF_DIGITS; digit++)
-        {
-            int digitValue = (current / (int)pow(10, digit)) % 10;
-            updateDisplay(digitValue, digit);
-            delay(1000);
-        }
-
-        current += change;
-		if (readValueGpio(GPIOE, JOYSTICK_PUSHED_PIN) == ON)
-		{
-			change = -1;
+		updateDisplay(counter, 0);
+		delay(1000000);
+		if (readValueGpio(GPIOE, JOYSTICK_PUSHED_PIN) == ON){
+			direction = 1;
 		}
-		else
-		{
-			change = 1;
+		else{
+			direction = -1;
+		}
+		counter += direction;
+		if(counter > MAX_DIGIT){
+			counter = MIN_DIGIT;
+		}
+		if(counter < MIN_DIGIT){
+			counter = MAX_DIGIT;
 		}
 	}
 }
 
 
-void initializePinToOutput(uint32_t port, uint16_t pin)
+void initializePinToOutput(uint32_t port, uint32_t pin)
 {
-	*(volatile uint32_t *)(port) |= pin * 2;
-	*(volatile uint32_t *)(port) &= ~(pin * 2 + 1);
+	*(volatile uint32_t *)(port) |= pin ;
+	*(volatile uint32_t *)(port) &= ~(pin << 1);
 }
 
-void initializePinToInput(uint32_t port, uint16_t pin)
+void initializePinToInput(uint32_t port, uint32_t pin)
 {
-	*(volatile uint32_t *)(port) &= ~(pin * 2);
-	*(volatile uint32_t *)(port) &= ~(pin * 2 + 1);
+	*((volatile uint32_t *)(port)) &= ~(pin);
+	*((volatile uint32_t *)(port)) &= ~(pin << 1);
 }
 void enableClockGPIOB()
 {
-	*(volatile uint32_t *)(AHB2ENR) |= (1 << 2);
+	*((volatile uint32_t *)(AHB2ENR)) |= (1 << 1);
 }
 void enableClockGPIOE()
 {
-	*(volatile uint32_t *)(AHB2ENR) |= (1 << 4);
+	*((volatile uint32_t *)(AHB2ENR)) |= (1 << 4);
 }
 void enableClockGPIOG()
 {
@@ -171,12 +206,12 @@ void enableClockGPIOG()
 
 void enableVDDIO2()
 {
-	*(volatile uint32_t *)(VDDIO2) |= (1 << 0);
+	*(volatile uint32_t *)(CR2) |= (1 << 9);
 }
 
 int readValueGpio(uint32_t port, uint16_t pin)
 {
-	return *(volatile uint32_t *)(port + GPIO_ODR) & (1 << pin) ? ON : OFF;
+	return *(volatile uint32_t *)(port + GPIO_IDR) & (pin) ? ON : OFF;
 }
 
 void setValueGpio(uint32_t port, uint16_t pin, int value)
@@ -184,11 +219,11 @@ void setValueGpio(uint32_t port, uint16_t pin, int value)
 	volatile uint32_t *gpio_odr = (volatile uint32_t *)(port + GPIO_ODR);
 	if (value == ON)
 	{
-		*gpio_odr |= (1 << pin);
+		*gpio_odr |= (pin);
 	}
 	else
 	{
-		*gpio_odr &= ~(1 << pin);
+		*gpio_odr &= ~(pin);
 	}
 }
 
@@ -198,20 +233,21 @@ void initializeGPIO()
 	enableClockGPIOE();
 	enableClockGPIOG();
 
-	initializePinToOutput(GPIOB, DIGIT_1);
-	initializePinToOutput(GPIOB, DIGIT_2);
-	initializePinToOutput(GPIOB, DIGIT_3);
-	initializePinToOutput(GPIOB, DIGIT_4);
+	initializePinToOutput(GPIOB, DIGIT_1_MODE);
+	initializePinToOutput(GPIOB, DIGIT_2_MODE);
+	initializePinToOutput(GPIOB, DIGIT_3_MODE);
+	initializePinToOutput(GPIOB, DIGIT_4_MODE);
 
-	initializePinToOutput(GPIOG, SEGMENT_A);
-	initializePinToOutput(GPIOG, SEGMENT_B);
-	initializePinToOutput(GPIOG, SEGMENT_C);
-	initializePinToOutput(GPIOG, SEGMENT_D);
-	initializePinToOutput(GPIOG, SEGMENT_E);
-	initializePinToOutput(GPIOG, SEGMENT_F);
-	initializePinToOutput(GPIOG, SEGMENT_G);
 
-	initializePinToInput(GPIOE, JOYSTICK_PUSHED_PIN);
+	initializePinToOutput(GPIOG, SEGMENT_A_MODE);
+	initializePinToOutput(GPIOG, SEGMENT_B_MODE);
+	initializePinToOutput(GPIOG, SEGMENT_C_MODE);
+	initializePinToOutput(GPIOG, SEGMENT_D_MODE);
+	initializePinToOutput(GPIOG, SEGMENT_E_MODE);
+	initializePinToOutput(GPIOG, SEGMENT_F_MODE);
+	initializePinToOutput(GPIOG, SEGMENT_G_MODE);
+
+	initializePinToInput(GPIOE, JOYSTICK_PUSHED_PIN_MODE);
 
 	enableVDDIO2();
 }
@@ -221,14 +257,13 @@ void delay(volatile uint32_t count)
 }
 void updateDisplay(int num, int digit)
 {
+
 	if (digit < 0 || digit >= NUMBER_OF_DIGITS)
 	{
 		return;
 	}
-	else{
-		setValueGpio(GPIOB, DIGITS_PINS[digit], ON);
-	}
 
+    uint8_t pattern = digit_patterns[num];
 
 	if (num < MIN_DIGIT || num > MAX_DIGIT)
 	{
@@ -236,11 +271,9 @@ void updateDisplay(int num, int digit)
 		{
 			setValueGpio(GPIOG, SEGMENTS_PINS[i], OFF);
 		}
-		setValueGpio(GPIOB, DIGITS_PINS[digit], OFF);
+		setValueGpio(GPIOB, DIGITS_PINS[digit], ON);
 		return;
 	}
-
-    uint8_t pattern = digit_patterns[num];
 
 	for (int i = 0; i < NUMBER_OF_SEGMENTS; i++)
 	{
@@ -253,5 +286,5 @@ void updateDisplay(int num, int digit)
 			setValueGpio(GPIOG, SEGMENTS_PINS[i], OFF);
 		}
 	}
-	setValueGpio(GPIOB, DIGITS_PINS[digit], OFF);
+
 }

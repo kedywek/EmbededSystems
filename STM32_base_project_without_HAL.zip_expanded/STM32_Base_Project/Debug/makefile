@@ -1,6 +1,6 @@
 ################################################################################
 # Automatically-generated file. Do not edit!
-# Toolchain: GNU Tools for STM32 (13.3.rel1)
+# Toolchain: GNU Tools for STM32 (12.3.rel1)
 ################################################################################
 
 -include ../makefile.init
@@ -59,8 +59,8 @@ all: main-build
 main-build: STM32_Base_Project.elf secondary-outputs
 
 # Tool invocations
-STM32_Base_Project.elf STM32_Base_Project.map: $(OBJS) $(USER_OBJS) C:\Users\Damian\STM32CubeIDE\workspace_1.18.0\STM32_base_project_without_HAL.zip_expanded\STM32_Base_Project\STM32L496ZGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "STM32_Base_Project.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\Damian\STM32CubeIDE\workspace_1.18.0\STM32_base_project_without_HAL.zip_expanded\STM32_Base_Project\STM32L496ZGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="STM32_Base_Project.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+STM32_Base_Project.elf STM32_Base_Project.map: $(OBJS) $(USER_OBJS) /home/lab/es/66/STM32CubeIDE/workspace_1.16.1/STM32_base_project_without_HAL.zip_expanded/STM32_Base_Project/STM32L496ZGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "STM32_Base_Project.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/home/lab/es/66/STM32CubeIDE/workspace_1.16.1/STM32_base_project_without_HAL.zip_expanded/STM32_Base_Project/STM32L496ZGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="STM32_Base_Project.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
