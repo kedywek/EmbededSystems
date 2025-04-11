@@ -1,0 +1,12 @@
+../Src/main.c:120:5:main	24	static
+../Src/main.c:148:6:initializePinToOutput	16	static
+../Src/main.c:154:6:initializePinToInput	16	static
+../Src/main.c:159:6:enableClockGPIOB	4	static
+../Src/main.c:163:6:enableClockGPIOE	4	static
+../Src/main.c:167:6:enableClockGPIOG	4	static
+../Src/main.c:172:6:enableVDDIO2	4	static
+../Src/main.c:177:5:readValueGpio	16	static
+../Src/main.c:182:6:setValueGpio	32	static
+../Src/main.c:195:6:initializeGPIO	8	static
+../Src/main.c:218:6:delay	16	static
+../Src/main.c:222:6:updateDisplay	32	static

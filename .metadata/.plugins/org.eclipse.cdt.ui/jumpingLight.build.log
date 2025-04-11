@@ -1,10 +1,10 @@
-00:12:52 **** Incremental Build of configuration Debug for project jumpingLight ****
+02:23:42 **** Incremental Build of configuration Debug for project jumpingLight ****
 make -j12 all 
 arm-none-eabi-size  jumpingLight.elf 
    text	   data	    bss	    dec	    hex	filename
-   6784	    120	   1568	   8472	   2118	jumpingLight.elf
+   6844	    120	   1568	   8532	   2154	jumpingLight.elf
 Finished building: default.size.stdout
  
 
-00:12:52 Build Finished. 0 errors, 0 warnings. (took 381ms)
+02:23:42 Build Finished. 0 errors, 0 warnings. (took 335ms)
 
