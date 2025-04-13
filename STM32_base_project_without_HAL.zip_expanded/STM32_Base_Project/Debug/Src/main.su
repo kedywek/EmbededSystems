@@ -1,4 +1,4 @@
-../Src/main.c:153:5:main	16	static
+../Src/main.c:148:5:main	24	static
 ../Src/main.c:183:6:initializePinToOutput	16	static
 ../Src/main.c:189:6:initializePinToInput	16	static
 ../Src/main.c:194:6:enableClockGPIOB	4	static

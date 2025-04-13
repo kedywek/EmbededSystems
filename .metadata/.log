@@ -240,3 +240,18 @@ java.lang.NullPointerException: Cannot invoke "com.st.stm32cube.common.mx.target
 
 !ENTRY org.eclipse.cdt.core 1 0 2025-04-10 23:22:45.031
 !MESSAGE Indexed 'STM32_Base_Project' (4 sources, 53 headers) in 0.315 sec: 2,037 declarations; 3,112 references; 0 unresolved inclusions; 1 syntax errors; 2 unresolved names (0.039%)
+!SESSION 2025-04-13 12:19:55.225 -----------------------------------------------
+eclipse.buildId=Version 1.18.0
+java.version=21.0.3
+java.vendor=Eclipse Adoptium
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=en_US
+Command-line arguments:  -os win32 -ws win32 -arch x86_64
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 4 4 2025-04-13 12:20:33.864
+!MESSAGE CubeMX plugin appears to be active, Log4j initialization might be too late.
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2025-04-13 12:20:33.866
+!MESSAGE Log4j2 initialized with config file C:\Users\Damian\STM32CubeIDE\workspace_1.18.0\.metadata\.log4j2.xml
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2025-04-13 12:20:42.500
+!MESSAGE Started RMI Server, listening on port 41337

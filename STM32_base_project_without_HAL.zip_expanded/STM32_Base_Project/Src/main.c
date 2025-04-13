@@ -118,12 +118,7 @@
 #define JOYSTICK_PORT GPIOE
 
 
-const int GPIO_PINS[16] = {
-	GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_2, GPIO_PIN_3,
-	GPIO_PIN_4, GPIO_PIN_5, GPIO_PIN_6, GPIO_PIN_7,
-	GPIO_PIN_8, GPIO_PIN_9, GPIO_PIN_10, GPIO_PIN_11,
-	GPIO_PIN_12, GPIO_PIN_13, GPIO_PIN_14, GPIO_PIN_15
-};
+
 const int SEGMENTS_PINS[7] = {SEGMENT_A, SEGMENT_B, SEGMENT_C, SEGMENT_D, SEGMENT_E, SEGMENT_F, SEGMENT_G};
 const int DIGITS_PINS[4] = {DIGIT_1, DIGIT_2, DIGIT_3, DIGIT_4};
 const uint8_t digit_patterns[10] = {
@@ -152,16 +147,27 @@ void updateDisplay(int num, int digit);
 
 int main(void)
 {
-	unsigned int counter = 0;
-	int direction = 1;
 	initializeGPIO();
 	setValueGpio(GPIOB, DIGITS_PINS[3], ON);
 	setValueGpio(GPIOB, DIGITS_PINS[2], ON);
 	setValueGpio(GPIOB, DIGITS_PINS[1], ON);
 	setValueGpio(GPIOB, DIGITS_PINS[0], ON);
+
+	int8_t digits[5] = {0,0,0,0,0};
+	int direction = 1;
 	while(1)
 	{
-		updateDisplay(counter, 0);
+		for (int i = 0; i < NUMBER_OF_DIGITS; i++){
+			if (digits[i] > MAX_DIGIT){
+				digits[i] = MIN_DIGIT;
+				digits[i + 1]++;
+			}
+			else if (digits[i] < MIN_DIGIT){
+				digits[i] = MAX_DIGIT;
+				digits[i + 1]--;
+			}
+			updateDisplay(digits[i], i);
+		}
 		delay(1000000);
 		if (readValueGpio(GPIOE, JOYSTICK_PUSHED_PIN) == ON){
 			direction = 1;
@@ -169,13 +175,7 @@ int main(void)
 		else{
 			direction = -1;
 		}
-		counter += direction;
-		if(counter > MAX_DIGIT){
-			counter = MIN_DIGIT;
-		}
-		if(counter < MIN_DIGIT){
-			counter = MAX_DIGIT;
-		}
+		digits[0] += direction;
 	}
 }
 

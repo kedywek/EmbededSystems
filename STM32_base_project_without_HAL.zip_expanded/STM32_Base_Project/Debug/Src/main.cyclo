@@ -1,4 +1,4 @@
-../Src/main.c:153:5:main	3
+../Src/main.c:148:5:main	5
 ../Src/main.c:183:6:initializePinToOutput	1
 ../Src/main.c:189:6:initializePinToInput	1
 ../Src/main.c:194:6:enableClockGPIOB	1
